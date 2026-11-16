@@ -1,0 +1,27 @@
+name: decode-images
+on: push
+permissions:
+  contents: write
+jobs:
+  decode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Decode and commit JPEGs
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(*.b64)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo no b64 files
+            exit 0
+          fi
+          for f in "${files[@]}"; do
+            base64 -d "$f" > "${f%.b64}"
+            rm "$f"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Decode temporary draft images"
+          git push
